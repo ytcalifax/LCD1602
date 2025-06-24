@@ -1,0 +1,55 @@
+# Arduino build files
+*.elf
+*.hex
+*.bin
+*.eep
+*.map
+*.d
+*.o
+*.a
+*.sdf
+*.dep
+*.dmp
+*.lst
+*.lss
+*.sym
+*.srec
+*.exe
+*.out
+
+# Arduino IDE files
+*.ino.cpp
+*.sketch.json
+
+# VSCode settings
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*~
+*.swp
+*.bak
+*.tmp
+
+# Build folders
+build/
+dist/
+
+# Arduino libraries (if downloaded locally)
+libraries/
+
+# PlatformIO
+.pio/
+
+# Arduino CLI
+.arduino/
+
+# Logs
+*.log
+
