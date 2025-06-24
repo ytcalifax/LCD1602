@@ -1,11 +1,11 @@
 # <div align="center">
 
 ```
-                                        _     ____ ____  _  __    ___ ____  
-                                       | |   / ___|  _ \/ |/ /_  / _ \___ \ 
-                                       | |  | |   | | | | | '_ \| | | |__) |
-                                       | |__| |___| |_| | | (_) | |_| / __/ 
-                                       |_____\____|____/|_|\___/ \___/_____|
+                                       _     ____ ____  _  __    ___ ____  
+                                      | |   / ___|  _ \/ |/ /_  / _ \___ \ 
+                                      | |  | |   | | | | | '_ \| | | |__) |
+                                      | |__| |___| |_| | | (_) | |_| / __/ 
+                                      |_____\____|____/|_|\___/ \___/_____|
                                       
 ```
 
@@ -17,13 +17,6 @@
   </a>
   <a href="#">
     <img src="https://img.shields.io/badge/platformio-library-orange.svg" alt="PlatformIO Badge"/>
-  </a>
-  <img src="https://img.shields.io/github/check-runs/ytcalifax/LCD1602/master?logo=githubactions&logoColor=%23ffffff" alt="Check Runs Badge"/>
-  <a href="#">
-    <img src="https://img.shields.io/github/actions/workflow/status/ytcalifax/LCD1602/docs.yml?label=docs&logo=google%20docs&logoColor=%23efefef" alt="Documentation Status Badge"/>
-  </a>
-  <a href="#">
-    <img src="https://img.shields.io/github/commits-since/ytcalifax/LCD1602/latest?color=yellow&logo=semanticrelease" alt="GitHub Commits Badge"/>
   </a>
 </p>
 
