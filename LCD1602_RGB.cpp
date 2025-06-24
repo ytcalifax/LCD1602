@@ -24,7 +24,6 @@ void LCD1602::begin(uint8_t cols, uint8_t lines) {
     _currline = 0;
     delay(50);  // Required delay during initialization
 
-    // Reducing number of repetitions from 3 to 2 (minimum required by LCD spec)
     for (uint8_t i = 0; i < 2; ++i) {
         command(LCD_FUNCTIONSET | _showfunction);
         delay(5);  // Required by LCD spec
@@ -35,7 +34,6 @@ void LCD1602::begin(uint8_t cols, uint8_t lines) {
     _showmode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
     command(LCD_ENTRYMODESET | _showmode);
 
-    // Initialize RGB backlight in a single transaction
     Wire.beginTransmission(_RGBAddr);
     Wire.write(REG_MODE1);
     Wire.write(0x00);  // Normal mode
@@ -63,11 +61,9 @@ void LCD1602::send(uint8_t *data, uint8_t len) {
     Wire.beginTransmission(_lcdAddr);
     for (uint8_t i = 0; i < len; ++i) {
         if (Wire.write(data[i]) != 1) {
-            // Error handling: write failed
             break;
         }
-        // Remove excessive delay - only a small delay is needed
-        delayMicroseconds(50);  // Much faster than 5ms delay
+        delayMicroseconds(50);  // Small delay required for LCD timing
     }
     Wire.endTransmission();
 }
@@ -90,7 +86,6 @@ void LCD1602::setReg(uint8_t addr, uint8_t data) const {
 }
 
 void LCD1602::setRGB(uint8_t r, uint8_t g, uint8_t b) const {
-    // Optimized to use auto-increment feature of the RGB controller
     Wire.beginTransmission(_RGBAddr);
     Wire.write(REG_RED);
     Wire.write(r);
@@ -116,7 +111,7 @@ void LCD1602::send_string(const char *str) {
 
     // Calculate string length first (up to a reasonable limit)
     uint8_t len = 0;
-    const uint8_t maxLen = 32; // Reasonable buffer size for LCD
+    const uint8_t maxLen = 32;
     while (str[len] && len < maxLen) len++;
 
     // For short strings, send character by character to maintain compatibility
@@ -162,7 +157,6 @@ void LCD1602::customSymbol(uint8_t location, const uint8_t charmap[8]) {
     location &= 0x7;
     command(LCD_SETCGRAMADDR | (location << 3));
 
-    // Optimize custom character upload by sending all data at once
     uint8_t data[9];
     data[0] = 0x40;
     memcpy(data + 1, charmap, 8);
@@ -174,7 +168,6 @@ void LCD1602::home() {
     delayMicroseconds(2000);  // This delay is required by LCD spec
 }
 
-// Implement missing methods from header
 void LCD1602::stopBlink() {
     _showcontrol &= ~LCD_BLINKON;
     command(LCD_DISPLAYCONTROL | _showcontrol);
