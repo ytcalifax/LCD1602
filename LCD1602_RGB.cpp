@@ -76,10 +76,9 @@ void LCD1602::display() {
 void LCD1602::clear() {
     command(LCD_CLEARDISPLAY);
     delayMicroseconds(2000);  // This delay is required by LCD spec
-    // Clear buffer
     for (uint8_t r = 0; r < 2; ++r)
         for (uint8_t c = 0; c < 16; ++c)
-            _displayBuffer[r][c] = ' ';
+            _displayBuffer[r][c] = '\0';
     _cursorCol = 0;
     _cursorRow = 0;
 }
@@ -113,14 +112,20 @@ void LCD1602::setCursor(uint8_t col, uint8_t row) {
 }
 
 void LCD1602::write_char(uint8_t value) {
-    if (_cursorRow < 2 && _cursorCol < 16 && _displayBuffer[_cursorRow][_cursorCol] == value) {
+    if (_cursorRow >= 2 || _cursorCol >= 16) return;
+
+    // If the character is already on screen, just advance the hardware cursor
+    if (_displayBuffer[_cursorRow][_cursorCol] == value) {
         _cursorCol++;
+        setCursor(_cursorCol, _cursorRow);
         return;
     }
-    _displayBuffer[_cursorRow][_cursorCol] = value;
-    _dirtyBuffer[_cursorRow][_cursorCol] = true;
+
+    setCursor(_cursorCol, _cursorRow);
     uint8_t data[2] = {0x40, value};
     send(data, 2);
+    _displayBuffer[_cursorRow][_cursorCol] = value;
+    _dirtyBuffer[_cursorRow][_cursorCol] = true;
     _cursorCol++;
 }
 
@@ -129,13 +134,18 @@ void LCD1602::send_string(const char *str) {
     uint8_t col = _cursorCol;
     uint8_t row = _cursorRow;
     if (row >= 2) return;
+
     setCursor(col, row);
+
     for (uint8_t i = 0; str[i] && col < 16; ++i, ++col) {
-        if (_displayBuffer[row][col] == str[i]) continue;
-        _displayBuffer[row][col] = str[i];
-        _dirtyBuffer[row][col] = true;
-        uint8_t data[2] = {0x40, static_cast<uint8_t>(str[i])};
-        send(data, 2);
+        if (_displayBuffer[row][col] != str[i]) {
+            _displayBuffer[row][col] = str[i];
+            _dirtyBuffer[row][col] = true;
+            uint8_t data[2] = {0x40, static_cast<uint8_t>(str[i])};
+            send(data, 2);
+        } else {
+            setCursor(col + 1, row);
+        }
     }
     _cursorCol = col;
 }
