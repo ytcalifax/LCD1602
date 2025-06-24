@@ -115,9 +115,10 @@ void LCD1602::setCursor(uint8_t col, uint8_t row) {
 void LCD1602::write_char(uint8_t value) {
     if (_cursorRow < 2 && _cursorCol < 16 && _displayBuffer[_cursorRow][_cursorCol] == value) {
         _cursorCol++;
-        return; // No change, skip
+        return;
     }
     _displayBuffer[_cursorRow][_cursorCol] = value;
+    _dirtyBuffer[_cursorRow][_cursorCol] = true;
     uint8_t data[2] = {0x40, value};
     send(data, 2);
     _cursorCol++;
@@ -132,10 +133,26 @@ void LCD1602::send_string(const char *str) {
     for (uint8_t i = 0; str[i] && col < 16; ++i, ++col) {
         if (_displayBuffer[row][col] == str[i]) continue;
         _displayBuffer[row][col] = str[i];
+        _dirtyBuffer[row][col] = true;
         uint8_t data[2] = {0x40, static_cast<uint8_t>(str[i])};
         send(data, 2);
     }
     _cursorCol = col;
+}
+
+void LCD1602::refresh() {
+    for (uint8_t r = 0; r < 2; ++r) {
+        setCursor(0, r);
+        for (uint8_t c = 0; c < 16; ++c) {
+            if (_dirtyBuffer[r][c]) {
+                uint8_t data[2] = {0x40, static_cast<uint8_t>(_displayBuffer[r][c])};
+                send(data, 2);
+                _dirtyBuffer[r][c] = false;
+            } else {
+                setCursor(c + 1, r);
+            }
+        }
+    }
 }
 
 void LCD1602::BlinkLED() {
