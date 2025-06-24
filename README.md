@@ -55,24 +55,35 @@ Here is a simple example to get you started:
 #include <Wire.h>
 #include <LCD1602_RGB.h>
 
-Waveshare_LCD1602_RGB lcd(16,2);  // 16 characters and 2 lines
-int r, g, b, t = 0;
-
+LCD1602 lcd(16, 2);  // 16 characters and 2 lines
+static const uint8_t colorTable[6][3] = {
+    {255,   0,   0}, // Red
+    {255, 255,   0}, // Yellow
+    {  0, 255,   0}, // Green
+    {  0, 255, 255}, // Cyan
+    {  0,   0, 255}, // Blue
+    {255,   0, 255}  // Magenta
+};
+    
 void setup() {
-    // initialize
+    Wire.begin();
     lcd.init();
-    lcd.setCursor(0,0);
+    lcd.setCursor(0, 0);
     lcd.send_string("Waveshare");
-    lcd.setCursor(0,1);
+    lcd.setCursor(0, 1);
     lcd.send_string("Hello,World!");
 }
 
 void loop() {
-    r = (abs(sin(3.14*t/180)))*255;
-    g = (abs(sin(3.14*(t + 60)/180)))*255;
-    b = (abs(sin(3.14*(t + 120)/180)))*255;
-    t = t + 3;
-    lcd.setRGB(r,g,b);
+    static int t = 0;
+    int idx = (t / 20) % 6;
+    int nextIdx = (idx + 1) % 6;
+    int blend = t % 20;
+    int r = colorTable[idx][0] + (colorTable[nextIdx][0] - colorTable[idx][0]) * blend / 20;
+    int g = colorTable[idx][1] + (colorTable[nextIdx][1] - colorTable[idx][1]) * blend / 20;
+    int b = colorTable[idx][2] + (colorTable[nextIdx][2] - colorTable[idx][2]) * blend / 20;
+    t = (t + 3) % 120;
+    lcd.setRGB(r, g, b);
     delay(150);
 }
 ```

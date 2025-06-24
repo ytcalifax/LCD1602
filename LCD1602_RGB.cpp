@@ -76,6 +76,12 @@ void LCD1602::display() {
 void LCD1602::clear() {
     command(LCD_CLEARDISPLAY);
     delayMicroseconds(2000);  // This delay is required by LCD spec
+    // Clear buffer
+    for (uint8_t r = 0; r < 2; ++r)
+        for (uint8_t c = 0; c < 16; ++c)
+            _displayBuffer[r][c] = ' ';
+    _cursorCol = 0;
+    _cursorRow = 0;
 }
 
 void LCD1602::setReg(uint8_t addr, uint8_t data) const {
@@ -85,7 +91,10 @@ void LCD1602::setReg(uint8_t addr, uint8_t data) const {
     Wire.endTransmission();
 }
 
-void LCD1602::setRGB(uint8_t r, uint8_t g, uint8_t b) const {
+void LCD1602::setRGB(uint8_t r, uint8_t g, uint8_t b) {
+    // Only update if color actually changes
+    if (r == _lastR && g == _lastG && b == _lastB) return;
+    _lastR = r; _lastG = g; _lastB = b;
     Wire.beginTransmission(_RGBAddr);
     Wire.write(REG_RED);
     Wire.write(r);
@@ -96,50 +105,37 @@ void LCD1602::setRGB(uint8_t r, uint8_t g, uint8_t b) const {
 
 void LCD1602::setCursor(uint8_t col, uint8_t row) {
     if (row >= _numlines) row = _numlines - 1;
+    _cursorCol = col;
+    _cursorRow = row;
     uint8_t addr = (row == 0 ? col | 0x80 : col | 0xc0);
     uint8_t data[2] = {0x80, addr};
     send(data, 2);
 }
 
 void LCD1602::write_char(uint8_t value) {
+    if (_cursorRow < 2 && _cursorCol < 16 && _displayBuffer[_cursorRow][_cursorCol] == value) {
+        _cursorCol++;
+        return; // No change, skip
+    }
+    _displayBuffer[_cursorRow][_cursorCol] = value;
     uint8_t data[2] = {0x40, value};
     send(data, 2);
+    _cursorCol++;
 }
 
 void LCD1602::send_string(const char *str) {
     if (str == nullptr) return;
-
-    // Calculate string length first (up to a reasonable limit)
-    uint8_t len = 0;
-    const uint8_t maxLen = 32;
-    while (str[len] && len < maxLen) len++;
-
-    // For short strings, send character by character to maintain compatibility
-    if (len <= 4) {
-        for (uint8_t i = 0; i < len; ++i) {
-            write_char(static_cast<uint8_t>(str[i]));
-        }
-        return;
+    uint8_t col = _cursorCol;
+    uint8_t row = _cursorRow;
+    if (row >= 2) return;
+    setCursor(col, row);
+    for (uint8_t i = 0; str[i] && col < 16; ++i, ++col) {
+        if (_displayBuffer[row][col] == str[i]) continue;
+        _displayBuffer[row][col] = str[i];
+        uint8_t data[2] = {0x40, static_cast<uint8_t>(str[i])};
+        send(data, 2);
     }
-
-    // For longer strings, use a more efficient approach with a buffer
-    uint8_t buffer[18]; // 16 chars + 2 bytes for control (16 is max chars in one line)
-    buffer[0] = 0x40;  // Control byte for data
-
-    // Process string in chunks of 16 characters maximum (one LCD line)
-    for (uint8_t i = 0; i < len;) {
-        uint8_t chunkSize = min(16, len - i);
-
-        // Fill buffer with chunk data
-        for (uint8_t j = 0; j < chunkSize; j++) {
-            buffer[j + 1] = static_cast<uint8_t>(str[i + j]);
-        }
-
-        // Send chunk to LCD
-        send(buffer, chunkSize + 1);
-
-        i += chunkSize;
-    }
+    _cursorCol = col;
 }
 
 void LCD1602::BlinkLED() {

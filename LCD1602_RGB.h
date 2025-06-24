@@ -71,7 +71,7 @@ public:
     void command(uint8_t value);
     void send(uint8_t *data, uint8_t len);
     void setReg(uint8_t addr, uint8_t data) const;
-    void setRGB(uint8_t r, uint8_t g, uint8_t b) const;
+    void setRGB(uint8_t r, uint8_t g, uint8_t b);
     void setCursor(uint8_t col, uint8_t row);
     void clear();
     void BlinkLED();
@@ -89,7 +89,7 @@ public:
     void rightToLeft();
     void noAutoscroll();
     void autoscroll();
-    void setColorWhite() const { setRGB(255, 255, 255); }
+    void setColorWhite() { setRGB(255, 255, 255); }
 
 private:
     void begin(uint8_t cols, uint8_t rows);
@@ -103,6 +103,10 @@ private:
     uint8_t _cols = 0;
     uint8_t _rows = 0;
     uint8_t _backlightval = 0;
+    char _displayBuffer[2][16] = {{0}};
+    uint8_t _cursorCol = 0;
+    uint8_t _cursorRow = 0;
+    uint8_t _lastR = 255, _lastG = 255, _lastB = 255;
 };
 
 #endif // __LCD1602_H__
